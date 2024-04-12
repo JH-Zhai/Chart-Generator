@@ -1,0 +1,150 @@
+<!--
+This project was created by Zhai Jia Hong. https://github.com/JH-Zhai
+
+Feel free to contribute to this project.
+
+This project is open-source and free to use. You are welcome to modify and distribute it.
+
+GLHF
+-->
+
+
+
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+
+<head>
+    <meta charset="utf-8">
+    <title>Dependency Graph</title>
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%"></div>
+
+    <script type="text/javascript" src="https://cdn.staticfile.net/jquery/3.7.1/jquery.min.js"></script>
+    <script type="text/javascript"
+        src="https://registry.npmmirror.com/echarts/5.5.0/files/dist/echarts.min.js"></script>
+
+    <script type="text/javascript">
+        // Initializing ECharts instance
+        var dom = document.getElementById('container');
+        var myChart = echarts.init(dom, null, {
+            renderer: 'canvas',
+            useDirtyRect: false
+        });
+        var option;
+
+        // Show loading animation while fetching data
+        myChart.showLoading();
+        $.getJSON(
+            'data.json', // URL to fetch JSON data
+            function (json) {
+                myChart.hideLoading();
+                myChart.setOption(
+                    (option = {
+                        title: {
+                            text: 'Dependency Graph'
+                        },
+                        animationDurationUpdate: 1500,
+                        animationEasingUpdate: 'quinticInOut',
+                        series: [
+                            {
+                                type: 'graph',
+                                layout: 'none',
+                                roam: true, // Enable mouse zoom and pan
+                                draggable: true, // Enable node dragging
+
+                                data: json.nodes.map(function (node) {
+                                    return {
+                                        x: node.x,
+                                        y: node.y,
+                                        id: node.id,
+                                        name: node.label,
+                                        note: node.note,
+                                        symbolSize: node.size,
+                                        symbol: node.shape, // Set node shape based on shape attribute
+                                        itemStyle: {
+                                            color: node.color
+                                        },
+                                        label: {
+                                            show: true, // Always show labels
+                                            formatter: function (params) {
+                                                // Concatenate node's name and note
+                                                if (params.data.note === undefined) {
+                                                    return params.data.name
+                                                } else {
+                                                    return params.data.name + '\n' + params.data.note
+                                                }
+                                            },
+                                            position: 'inside', // Adjust label position as needed
+                                            fontSize: 12
+                                        }
+                                    };
+                                }),
+
+                                edges: json.edges.map(function (edge) {
+                                    if (edge.note === undefined) {
+                                        console.log("Hello world!");
+                                        return {
+                                            source: edge.sourceID,
+                                            target: edge.targetID,
+                                            lineStyle: {
+                                                width: 2 // Adjust thickness of the edge
+                                            },
+                                            symbol: ['none', 'arrow'], // Show arrow at target
+                                            symbolSize: 10,
+                                            lineStyle: {
+                                                width: 3,
+                                                curveness: 0,
+                                                opacity: 0.7
+                                            }// Size of the arrow
+                                        };
+                                    } else {
+                                        console.log("Hello world!");
+                                        return {
+                                            source: edge.sourceID,
+                                            target: edge.targetID,
+                                            lineStyle: {
+                                                width: 2 // Adjust thickness of the edge
+                                            },
+                                            symbol: ['none', 'arrow'], // Show arrow at target
+                                            symbolSize: 10,
+                                            label: {
+                                                show: true, // Show label for edge
+                                                formatter: edge.note, // Display note as label
+                                                position: 'middle', // Adjust label position
+                                                fontSize: 10,
+                                                color: '#333' // Adjust label color
+                                            },
+                                            lineStyle: {
+                                                width: 3,
+                                                curveness: 0,
+                                                opacity: 0.7
+                                            }// Size of the arrow
+                                        };
+                                    }
+                                }),
+
+                                emphasis: {
+                                    focus: 'adjacency'
+                                },
+
+                            }
+                        ]
+                    }),
+                    true
+                );
+            }
+        );
+
+        // Ensure option object is defined and set it to the chart
+        if (option && typeof option === 'object') {
+            myChart.setOption(option);
+        }
+
+        // Resize chart when window is resized
+        window.addEventListener('resize', myChart.resize);
+    </script>
+</body>
+
+</html>
